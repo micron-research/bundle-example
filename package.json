@@ -1,5 +1,8 @@
 {
   "type": "module",
+  "scripts": {
+    "bundle": "node ./bundle.js"
+  },
   "devDependencies": {
     "@hyperjump/json-schema": "^1.5.1",
     "glob": "^10.3.1",
