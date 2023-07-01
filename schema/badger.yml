@@ -1,0 +1,9 @@
+---
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: /schema/badger
+type: object
+properties:
+  mushroom:
+    $ref: /schema/badger/mushroom
+  snaaake:
+    $ref: /schema/badger/snaaake
