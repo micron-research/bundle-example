@@ -1,5 +1,5 @@
 ---
 $schema: https://json-schema.org/draft/2020-12/schema
-$id: /schema/badger/mushroom/snaaake
+$id: '{{{ DOMAIN }}}/badger/mushroom/snaaake'
 type: string
 const: snaaake!

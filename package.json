@@ -1,11 +1,40 @@
 {
+  "name": "datum-schema",
+  "description": "Datum Schema Definitions",
+  "version": "0.0.0",
   "type": "module",
+  "license": "proprietary",
+  "private": true,
   "scripts": {
-    "bundle": "node ./bundle.js"
+    "build": "tsc -p .",
+    "bundle": "tsx ./src/bundle.ts",
+    "clean": "rm -rf ./node_modules ./yarn.lock && yarn",
+    "test": "vitest --typecheck --coverage"
+  },
+  "dependencies": {
+    "chalk": "4.1.2",
+    "clear": "^0.1.0",
+    "commander": "^12.0.0",
+    "figlet": "^1.7.0",
+    "glob": "^10.3.1",
+    "lodash.isequal": "^4.5.0",
+    "mustache": "^4.2.0",
+    "tsx": "^4.9.0",
+    "yaml": "^2.3.1"
   },
   "devDependencies": {
-    "@hyperjump/json-schema": "^1.5.1",
-    "glob": "^10.3.1",
-    "yaml": "^2.3.1"
+    "@hyperjump/browser": "^1.1",
+    "@hyperjump/json-schema": "^1.9",
+    "@types/clear": "^0.1.4",
+    "@types/commander": "^2.12.2",
+    "@types/figlet": "^1.5.8",
+    "@types/glob": "^8.1.0",
+    "@types/mustache": "^4.2.5",
+    "@types/node": "^20.11.24",
+    "@vitest/coverage-istanbul": "^1.3.1",
+    "nodemon": "^3.1.0",
+    "typescript": "^5.3.3",
+    "vite-tsconfig-paths": "^4.3.2",
+    "vitest": "^1.3.1"
   }
 }

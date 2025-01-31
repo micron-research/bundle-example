@@ -1,124 +1,114 @@
-import { addSchema, addMediaTypePlugin } from "@hyperjump/json-schema/draft-2020-12";
-import { bundle } from "@hyperjump/json-schema/bundle";
+import { registerSchema as registerOpenApiSchema } from '@hyperjump/json-schema/openapi-3-1'
+import { registerSchema as registerJsonSchema } from '@hyperjump/json-schema/draft-2020-12'
+import { registerSchema } from '@hyperjump/json-schema'
+import { bundle } from '@hyperjump/json-schema/bundle'
 
-import * as path from 'path'
-import * as yaml from 'yaml'
+
+// Utilities
+import fs from 'node:fs'
+import path from 'node:path'
+import yaml from 'yaml'
 import { globSync } from 'glob'
-import { parse as parseYaml } from 'yaml';
-import { readFileSync } from 'node:fs'
-import { existsSync, mkdirSync, rmSync, writeFileSync } from "fs";
+//import { existsSync, mkdirSync, rmSync, writeFileSync, readFileSync } from 'node:fs'
+import Mustache from 'mustache'
 
-
-// -----------------------------------------------------------------------------
-// Prepare Dependencies
-
-addMediaTypePlugin("application/octet-stream", {
-  parse: async (response) => [parseYaml(await response.text()), undefined],
-  matcher: (path) => path.endsWith(".yml") || path.endsWith(".yaml")
-});
-
-// turn of logging here
-// console.log = () => {}
 
 
 // -----------------------------------------------------------------------------
 // Constants
 
-const SOURCE = path.resolve('schema')
-const TARGET = path.resolve('bundled')
+// '.' is from the package.json context, not this file's path
+const BASE = path.resolve('.')
+const SOURCE = 'src/schema'
+const TARGET = 'bundled'
+const DOMAIN = 'https://badgers.io'
+
+const MustacheTags = {
+  BASE,
+  SOURCE,
+  TARGET,
+  DOMAIN,
+}
+
+console.log('Constants: ', MustacheTags)
 
 
 // -----------------------------------------------------------------------------
-// Functions
+// Helpers
 
-let prepFilesystem = () => {
-  try {
-    mkdirSync('bundled')
-  } catch (error) {
-    rmSync('bundled', { force: true, recursive: true })
-    prepFilesystem()
-  }
+const prepFilesystem = () => {
+  console.log('prepFilesystem: ' + TARGET)
+
+  fs.rmSync(TARGET, { force: true, recursive: true })
+  fs.mkdirSync(TARGET)
 }
 
-let withGlobbedFiles = (files) => {
-  console.log('File list:', files)
+const withGlobbedFiles = (files, callbacks) => {
+  console.log('withGlobbedFiles:', files)
 
-  files.forEach(iterateOverSchemaForAdding)
-  files.every(iterateOverFileForBundling)
+  callbacks.forEach(callback => {
+    files.forEach((file) => {
+      callback(file)
+    })
+  })
 }
 
-let iterateOverSchemaForAdding = (file) => {
-  console.log('Iteration: ' + file)
+const readActualFile = (filePath) => fs.readFileSync(filePath, {
+  encoding: 'utf-8',
+})
 
-  try {
-    let contents = readFileSync(file, { encoding: 'utf-8' })
+const getDetailsFromParsedSchema = (schema) => [schema['$id'], schema['$schema']]
 
-    addSchemaForContents(contents, file)
-  } catch (error) {
-    console.error(error)
-  }
+const generateTargetFilePath = sourcePath => sourcePath.replace(SOURCE, TARGET)
+const ensureTargetPath = (path) => {
+  console.log('ensureTargetPath: ' + path)
+  fs.existsSync(path) || fs.mkdirSync(path, { recursive: true })
 }
 
-let addSchemaForContents = (contents, filePath) => {
-  let schema = parseYaml(contents)
-  let retrievalURI = 'file://' + filePath
 
-  console.log('File Schema:', schema)
-  console.log('Retrieval URI:', retrievalURI)
+// -----------------------------------------------------------------------------
+// Registering Schemas
 
-  addSchema(schema, retrievalURI)
-}
-
-let iterateOverFileForBundling = (file) => {
-  try {
-    ensureTargetFilePath(file)
-    bundleSchemaToFile(file)
-  } catch (error) {
-    return false
-  }
-
-  return true
-}
-
-let ensureTargetFilePath = (file) => {
-  let targetPath = path.parse(file).dir.replace(SOURCE, TARGET)
-
-  console.log('Target Path:', targetPath)
-
-  if (!existsSync(targetPath)) {
-    mkdirSync(targetPath, { recursive: true })
-  }
-}
-
-let bundleSchemaToFile = (file) => {
-  let sourceFile = 'file://' + file
-
-  console.log('Source File:', sourceFile)
-
-  bundle(sourceFile).then((schema) => { writeBundledFile(schema, file) }, reportFailedBundle)
-}
-
-let writeBundledFile = (bundled, file) => {
-  let yamlString = yaml.stringify(bundled)
-  let targetFile = file.replace(SOURCE, TARGET)
-
-  console.log(bundled)
-  console.log(yamlString)
-  console.log('Target File:', targetFile)
+const replaceTagsWithValues = (fileContents, tags) => Mustache.render(fileContents, tags)
+const prepareAndRegisterFile = (filePath) => {
+  console.log('prepareAndRegisterFile: ' + filePath)
 
   try {
-    writeFileSync(
-      targetFile,
-      yamlString,
-      { encoding: 'utf-8', flag: 'w' }
-    )
+    let contents = replaceTagsWithValues(readActualFile(filePath), MustacheTags)
+    let parsed = yaml.parse(contents)
+    let [$id, $schema] = getDetailsFromParsedSchema(parsed)
+
+    registerSchema(parsed, $id, $schema)
   } catch (error) {
-    console.error(error)
+    throw error
   }
 }
 
-let reportFailedBundle = (error) => {
-  console.error(error)
+
+// -----------------------------------------------------------------------------
+// Bundle Json Schema
+
+const schemaIdentifierFromSourceFilePath = (filePath) => filePath.replace(path.join(BASE, SOURCE), DOMAIN).replace('.yml', '')
+
+const reportFailedBundle = (error) => console.error('Bundle Failed: ', error)
+const writeBundledFile = (bundled, filePath) => fs.writeFileSync(filePath, yaml.stringify(bundled), { encoding: 'utf-8', flag: 'w' })
+
+const bundleSchemaToFile = (schema, targetFilePath) => {
+  console.log('bundleSchemaToFile: ' + schema + ', ' + targetFilePath)
+
+  bundle(schema, { alwaysIncludeDialect: false }).then((bundled) => writeBundledFile(bundled, targetFilePath), reportFailedBundle)
+}
+
+const bundleFileAndSaveIt = (filePath) => {
+  console.log('bundleFileAndSaveIt: ' + filePath)
+
+  try {
+    let targetFilePath = generateTargetFilePath(filePath)
+    ensureTargetPath(path.parse(targetFilePath).dir)
+    bundleSchemaToFile(schemaIdentifierFromSourceFilePath(filePath), targetFilePath)
+  } catch (error) {
+    throw error
+  }
 }
 
 
@@ -128,5 +118,11 @@ let reportFailedBundle = (error) => {
 prepFilesystem()
 
 withGlobbedFiles(
-  globSync(path.join(SOURCE, '**', '*.yml'))
+  globSync(path.join(BASE, SOURCE, '**', '*.yml'), {
+    ignore: [
+      path.join(BASE, SOURCE, '**', '*asyncapi.yml'),
+      // path.join(BASE, SOURCE, '**', '*openapi.yml'),
+    ]
+  }),
+  [prepareAndRegisterFile, bundleFileAndSaveIt]
 )

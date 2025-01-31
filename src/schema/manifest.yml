@@ -1,0 +1,7 @@
+$schema: 'https://json-schema.org/draft/2020-12/schema'
+$id: '{{{ DOMAIN }}}/manifest'
+oneOf:
+  - $ref: /badger
+  - $ref: /badger/mushroom
+  - $ref: /badger/mushroom/snaaake
+  - $ref: /badger/snaaake

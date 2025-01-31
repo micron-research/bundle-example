@@ -1,9 +1,9 @@
 ---
 $schema: https://json-schema.org/draft/2020-12/schema
-$id: /schema/badger/mushroom
+$id: '{{{ DOMAIN }}}/badger/mushroom'
 type: object
 properties:
   my-snaaake:
-    $ref: /schema/badger/mushroom/snaaake
+    $ref: /badger/mushroom/snaaake
   badger-snaaake:
-    $ref: /schema/badger/snaaake
+    $ref: /badger/snaaake
