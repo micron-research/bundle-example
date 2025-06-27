@@ -26,4 +26,4 @@ paths:
 components:
   schemas:
     badger:
-      $ref: '/badger'
+      $ref: '{{{ DOMAIN }}}/badger'

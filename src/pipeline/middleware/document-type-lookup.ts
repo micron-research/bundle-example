@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs'
 import { Middleware, Context } from '../../pipeline'
 import DocumentContext, { DocumentType } from '../context/document-context'
 

@@ -18,13 +18,11 @@ export class GlobPipeline implements Middleware {
   process(context: FileListContext): FileListContext {
     const files = globSync(this.#pattern, this.#options)
 
-    console.log(this.#pattern)
-
     files.forEach(file => {
       file = typeof file === 'string' ? file : file.fullpath();
       let document = this.#createContextForFile(file)
       document = this.#pipeline.process(document)
-      context.files.set(file, document as DocumentContext)
+      context.files.set((document as DocumentContext).identifier, document as DocumentContext)
     });
 
     return context
