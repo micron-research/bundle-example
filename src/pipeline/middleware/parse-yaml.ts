@@ -1,6 +1,5 @@
 import Yaml from 'yaml'
-
-import { Middleware, Context } from '../../pipeline'
+import { Middleware } from '../../pipeline'
 import DocumentContext from '../context/document-context'
 
 type Yaml = typeof Yaml
@@ -12,7 +11,7 @@ export class ParseYaml implements Middleware {
     this.#yaml = yaml
   }
 
-  process(context: DocumentContext): DocumentContext {
+  async process(context: DocumentContext): Promise<DocumentContext> {
     context.schema = this.#yaml.parse(context.contents)
 
     return context

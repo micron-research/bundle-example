@@ -12,7 +12,7 @@ export class RenderMustacheTags implements Middleware {
     this.#tags = tags
   }
 
-  process(context: DocumentContext): DocumentContext {
+  async process(context: DocumentContext): Promise<DocumentContext> {
     context.contents = Mustache.render(context.contents, this.#tags)
 
     return context

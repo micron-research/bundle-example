@@ -15,22 +15,12 @@ export class BundleJsonSchema implements Middleware {
     this.#bundle = bundle
   }
 
-  process(context: DocumentContext): DocumentContext {
+  async process(context: DocumentContext): Promise<DocumentContext> {
 
     if (context.type === 'json-schema' || context.type == 'manifest') {
-      let done: SchemaObject;
-
-      this.#bundle(context.identifier, { alwaysIncludeDialect: false }).then((bundled) => {
-        done = bundled
+      await this.#bundle(context.identifier, { alwaysIncludeDialect: false }).then((bundled) => {
+        context.bundled = bundled
       })
-
-      let timer = setTimeout(function () {
-        if (done) {
-          context.bundled = done
-          clearTimeout(timer)
-          return context
-        }
-      }, 500)
     }
 
     return context

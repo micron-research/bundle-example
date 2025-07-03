@@ -9,10 +9,10 @@ export class FileListPipeline implements Middleware {
     this.#pipeline = new MiddlewarePipeline(...middlewares)
   }
 
-  process(context: FileListContext): FileListContext {
-    context.files.forEach((file) => {
-      file = this.#pipeline.process(file) as DocumentContext
-    })
+  async process(context: FileListContext): Promise<FileListContext> {
+    for await (let [key, file] of context.files) {
+      file = await this.#pipeline.process(file) as DocumentContext
+    }
 
     return context
   }

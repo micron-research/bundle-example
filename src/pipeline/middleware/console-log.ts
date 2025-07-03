@@ -1,7 +1,6 @@
 import { Console } from 'node:console'
 import { Middleware, Context } from '../../pipeline'
 import DocumentContext from '../context/document-context'
-import { FileListContext } from '../context/file-list-context.js';
 
 export class ConsoleLog implements Middleware {
   #console: Console
@@ -10,9 +9,9 @@ export class ConsoleLog implements Middleware {
     this.#console = console
   }
 
-  process(context: FileListContext): FileListContext {
+  async process(context: DocumentContext): Promise<DocumentContext> {
 
-    this.#console.log(context);
+    this.#console.log(context.bundled);
 
     return context
   }

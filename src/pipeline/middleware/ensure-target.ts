@@ -1,18 +1,20 @@
+import { mkdirSync } from 'node:fs'
 import { Middleware, Context } from '../../pipeline'
 import DocumentContext from '../context/document-context'
 
-export class GenerateTarget implements Middleware {
-  #source: string
+export class EnsureTarget implements Middleware {
   #target: string
 
-  constructor(source: string, target: string) {
-    this.#source = source
+  constructor (target: string) {
     this.#target = target
   }
 
   async process(context: DocumentContext): Promise<DocumentContext> {
 
-    context.target = context.source.replace(this.#source, this.#target)
+    try {
+      mkdirSync(this.#target)
+    } catch (_) {
+    }
 
     return context
   }

@@ -12,7 +12,7 @@ export class UnparseYaml implements Middleware {
     this.#yaml = yaml
   }
 
-  process(context: DocumentContext): DocumentContext {
+  async process(context: DocumentContext): Promise<DocumentContext> {
     if ('bundled' in context) {
       context.bundled = this.#yaml.stringify(context.bundled)
     }

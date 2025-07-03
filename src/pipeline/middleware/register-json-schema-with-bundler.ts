@@ -15,12 +15,11 @@ export class RegisterJsonSchemaWithBundler implements Middleware {
     this.#register = register
   }
 
-  process(context: DocumentContext): DocumentContext {
+  async process(context: DocumentContext): Promise<DocumentContext> {
     if (context.type === 'json-schema' || context.type === 'manifest') {
       let [$id, $schema] = this.#getDetailsFromParsedSchema(context.schema as Schema)
 
-      // this.#register(context.schema as SchemaObject, $id, $schema)
-      this.#register(context.schema as SchemaObject, $id)
+      this.#register(context.schema as SchemaObject, $id, $schema)
     }
 
     return context

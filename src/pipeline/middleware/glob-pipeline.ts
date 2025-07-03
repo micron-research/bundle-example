@@ -15,15 +15,15 @@ export class GlobPipeline implements Middleware {
     this.#pipeline = new MiddlewarePipeline(...middlewares)
   }
 
-  process(context: FileListContext): FileListContext {
+  async process(context: FileListContext): Promise<FileListContext> {
     const files = globSync(this.#pattern, this.#options)
 
-    files.forEach(file => {
+    for await (let file of files) {
       file = typeof file === 'string' ? file : file.fullpath();
       let document = this.#createContextForFile(file)
-      document = this.#pipeline.process(document)
+      document = await this.#pipeline.process(document)
       context.files.set((document as DocumentContext).identifier, document as DocumentContext)
-    });
+    }
 
     return context
   }

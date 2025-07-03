@@ -6,7 +6,8 @@ type Schema = {
 }
 
 export class DocumentIdentifierFromFileContents implements Middleware {
-  process(context: DocumentContext): DocumentContext {
+
+  async process(context: DocumentContext): Promise<DocumentContext> {
     context.identifier = this.#getIdFromParsedSchema(context.schema as Schema)
 
     return context

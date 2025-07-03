@@ -19,6 +19,8 @@ import { RegisterJsonSchemaWithBundler } from './pipeline/middleware/register-js
 import { BundleJsonSchema } from './pipeline/middleware/bundle-json-schema.js';
 import { DocumentIdentifierFromFileContents } from './pipeline/middleware/document-identifier-from-file-contents.js';
 import { UnparseYaml } from './pipeline/middleware/unparse-yaml.js';
+import { WriteBundleToTarget } from './pipeline/middleware/write-bundle-to-target.js';
+import { EnsureTarget } from './pipeline/middleware/ensure-target.js';
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -39,6 +41,7 @@ const MustacheTags = {
 // console.log(figlet.textSync("Bundlizer GO!"));
 
 let pipeline = new MiddlewarePipeline(
+  new EnsureTarget(TARGET),
   new GlobPipeline(
     path.join(BASE, SOURCE, '**', '*.yml'),
     {},
@@ -56,6 +59,7 @@ let pipeline = new MiddlewarePipeline(
     new BundleJsonSchema(bundle),
     new UnparseYaml(Yaml),
     new ConsoleLog(console),
+    new WriteBundleToTarget(),
   ),
 );
 
