@@ -17,13 +17,13 @@ export interface Middleware {
   process(context: Context): Context
 }
 
-export interface Pipeline extends Middleware {
+export interface Pipeline {
   push (...middlewares: Middleware[]): Pipeline
   unshift (...middlewares: Middleware[]): Pipeline
   insert (index: number, ...middlewares: Middleware[]): Pipeline
 }
 
-export class MiddlewarePipeline implements Pipeline
+export class MiddlewarePipeline implements Middleware, Pipeline
 {
   #middlewares: Set<Middleware>
 
@@ -54,13 +54,13 @@ export class MiddlewarePipeline implements Pipeline
     return this
   }
 
-  process(context: Context): Context {
+  async process(context: Context): Promise<Context> {
     try {
       const middlewares: Middleware[] = Array.from(this.#middlewares)
 
-      middlewares.forEach((middleware: Middleware) => {
-        context = middleware.process(context)
-      })
+      for await (const middleware of middlewares) {
+        context = await middleware.process(context)
+      }
     } catch (error) {
       if (!(error instanceof Interrupt)) {
         throw error
