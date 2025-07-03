@@ -2,4 +2,3 @@ bundled
 dist
 docs
 node_modules
-yarn.lock
